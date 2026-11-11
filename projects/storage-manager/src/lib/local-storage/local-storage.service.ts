@@ -3,13 +3,21 @@ import { LOCAL_STORAGE_TOKEN } from '../internal/browser-tokens';
 import { StorageError, StorageErrorCode } from '../models/storage-error.model';
 import { STORAGE_MANAGER_CONFIG } from '../models/storage-config.model';
 
-/** Nombres con los que algunos navegadores reportan la cuota llena. */
+/**
+ * Nombres con los que algunos navegadores reportan la cuota llena.
+ *
+ * @internal
+ */
 const QUOTA_ERROR_NAMES: ReadonlySet<string> = new Set([
   'QuotaExceededError',
   'NS_ERROR_DOM_QUOTA_REACHED',
 ]);
 
-/** Códigos con los que algunos navegadores reportan la cuota llena. */
+/**
+ * Códigos con los que algunos navegadores reportan la cuota llena.
+ *
+ * @internal
+ */
 const QUOTA_ERROR_CODES: ReadonlySet<number> = new Set([22, 1014]);
 
 /**
@@ -21,8 +29,8 @@ const QUOTA_ERROR_CODES: ReadonlySet<number> = new Set([22, 1014]);
  * {@link STORAGE_MANAGER_CONFIG}; si no hay configuración o el prefijo está
  * vacío, se usan las claves tal cual.
  *
- * El acceso al almacenamiento se realiza a través de
- * {@link LOCAL_STORAGE_TOKEN}, nunca directamente sobre `window`.
+ * El acceso al almacenamiento se realiza a través de un token interno de
+ * inyección, nunca directamente sobre `window`.
  *
  * @example
  * ```ts

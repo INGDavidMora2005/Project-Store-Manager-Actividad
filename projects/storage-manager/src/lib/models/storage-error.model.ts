@@ -27,7 +27,7 @@ export enum StorageErrorCode {
 /**
  * Error propio de la librería Storage Manager.
  *
- * Extiende de {@link Error} e incorpora un {@link StorageErrorCode} para que
+ * Extiende de `Error` e incorpora un {@link StorageErrorCode} para que
  * los consumidores puedan identificar la causa del fallo. La causa original
  * (por ejemplo, una `DOMException`) se conserva en la propiedad `cause`.
  *
