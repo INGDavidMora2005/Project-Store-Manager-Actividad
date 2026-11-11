@@ -2,6 +2,8 @@
 
 Workspace de Angular que contiene la librería `ngx-uceva-storage-manager` y una aplicación de demostración (Showcase). La librería ofrece una API tipada para gestionar `LocalStorage` y `Cache Storage` con claves prefijadas y errores identificables.
 
+Paquete publicado en NPM: [ngx-uceva-storage-manager](https://www.npmjs.com/package/ngx-uceva-storage-manager).
+
 ## Descripción del proyecto
 
 El repositorio agrupa dos proyectos:
@@ -20,7 +22,7 @@ projects/
 ```
 
 - `projects/storage-manager`: código de la librería, modelos, servicios y API pública.
-- `projects/showcase`: aplicación que consume la librería y muestra sus operaciones.
+- `projects/showcase`: aplicación que consume la librería publicada en NPM y muestra sus operaciones.
 
 ## Requisitos
 
@@ -41,13 +43,13 @@ npm install
 
 | Script | Comando | Descripción |
 |---|---|---|
-| `build:lib` | `ng build storage-manager` | Compila la librería en `dist/storage-manager`. |
+| `build:lib` | `ng build storage-manager` | Compila la librería en `dist/storage-manager` para desarrollo local. |
 | `test` | `ng test storage-manager --watch=false` | Ejecuta las pruebas unitarias una vez. |
 | `test:coverage` | `ng test storage-manager --watch=false --coverage` | Ejecuta las pruebas y genera el reporte de cobertura. |
 | `docs` | `compodoc -p projects/storage-manager/tsconfig.doc.json -d documentation --name "ngx-uceva-storage-manager" --disablePrivate --disableProtected --disableInternal --disableDependencies` | Genera la documentación técnica en `documentation/`. |
 | `docs:serve` | `compodoc -p projects/storage-manager/tsconfig.doc.json -d documentation --name "ngx-uceva-storage-manager" --disablePrivate --disableProtected --disableInternal --disableDependencies -s` | Genera la documentación y la sirve localmente. |
 | `docs:coverage` | `compodoc -p projects/storage-manager/tsconfig.doc.json -d documentation --name "ngx-uceva-storage-manager" --disablePrivate --disableProtected --disableInternal --disableDependencies --coverageTest 100 --silent` | Verifica que la API pública esté documentada al 100 %. |
-| `start:showcase` | `npm run build:lib && ng serve showcase` | Compila la librería y levanta el Showcase. |
+| `start:showcase` | `ng serve showcase` | Levanta el Showcase usando la librería instalada desde NPM. |
 | `build:showcase` | `ng build showcase` | Compila el Showcase para producción. |
 
 ## Ejecutar el Showcase
@@ -56,7 +58,7 @@ npm install
 npm run start:showcase
 ```
 
-El comando compila primero la librería y después inicia el servidor de desarrollo del Showcase. Abre `http://localhost:4200/` en el navegador.
+El Showcase consume la librería publicada en NPM (`ngx-uceva-storage-manager@^1.0.0`), que se instala con `npm install`. El comando inicia el servidor de desarrollo del Showcase sin compilar la librería localmente. Abre `http://localhost:4200/` en el navegador.
 
 Para generar únicamente la compilación de producción del Showcase:
 
@@ -64,7 +66,7 @@ Para generar únicamente la compilación de producción del Showcase:
 npm run build:showcase
 ```
 
-Este script requiere que la librería esté compilada previamente en `dist/storage-manager`; si no lo está, ejecuta antes `npm run build:lib`.
+El Showcase resuelve la librería desde `node_modules`, por lo que no necesita que exista `dist/storage-manager`. `npm run build:lib` sigue disponible para compilar y desarrollar la librería en `dist/storage-manager`; el Showcase no consume esa carpeta, sino la versión instalada desde NPM.
 
 ## Uso rápido
 
