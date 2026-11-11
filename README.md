@@ -119,6 +119,8 @@ export class EjemploCacheComponent {
 }
 ```
 
+Las operaciones de escritura (`put`, `putJson` y `fetchAndStore`) crean la caché si no existe; las de lectura y eliminación (`get`, `getJson`, `keys` y `delete`) no la crean. `get` devuelve `undefined` y `getJson` devuelve `null` cuando la caché o el recurso no existen. `getJson` tampoco distingue un recurso inexistente de un JSON guardado con valor `null`; para diferenciarlos usa `get` o `keys`. Los nombres de caché no llevan el prefijo de `STORAGE_MANAGER_CONFIG`.
+
 ## Documentación completa
 
 Consulta el [README de la librería](projects/storage-manager/README.md) para ver la instalación, la configuración, los ejemplos de todos los métodos, el manejo de errores y la referencia completa de la API.

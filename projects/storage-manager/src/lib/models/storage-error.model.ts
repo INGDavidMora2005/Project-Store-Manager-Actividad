@@ -17,9 +17,6 @@ export enum StorageErrorCode {
   /** El contenido almacenado no es un JSON válido. */
   PARSE_ERROR = 'PARSE_ERROR',
 
-  /** La clave o el recurso solicitado no existe. */
-  NOT_FOUND = 'NOT_FOUND',
-
   /** Ocurrió un fallo no clasificado durante la operación. */
   OPERATION_FAILED = 'OPERATION_FAILED',
 }
