@@ -1,6 +1,6 @@
 {
   "name": "ngx-uceva-storage-manager",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "Librería Angular tipada para gestionar LocalStorage y Cache Storage con una API consistente.",
   "license": "MIT",
   "author": "David Mora Duque, Juan Diego Rodríguez Ortiz, Juan Pablo Devia Masso",
