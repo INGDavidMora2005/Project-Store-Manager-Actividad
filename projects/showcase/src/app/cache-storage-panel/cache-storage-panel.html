@@ -1,1 +1,461 @@
-<p>cache-storage-panel works!</p>
+<section class="panel" [attr.aria-busy]="busy()">
+  <header class="panel__header">
+    <p class="panel__eyebrow">Demostración de la API</p>
+    <h2 class="panel__title">Cache Storage</h2>
+    <p class="panel__intro">
+      Crea cachés, guarda respuestas, consulta recursos y elimínalos usando la API asíncrona de
+      <code>CacheStorageService</code> de <code>ngx-uceva-storage-manager</code>.
+    </p>
+  </header>
+
+  <!-- 1. Estado -->
+  <section class="sm-card status" aria-labelledby="cache-status-title">
+    <h3 id="cache-status-title" class="sm-card__title">1. Estado</h3>
+
+    @if (supported()) {
+      <p class="sm-success" id="cache-support">
+        <code>isSupported()</code> devolvió <strong>true</strong>: este navegador es compatible con
+        Cache Storage.
+      </p>
+    } @else {
+      <p class="sm-error" id="cache-support" role="alert">
+        <code>isSupported()</code> devolvió <strong>false</strong>: Cache Storage no está disponible
+        en este entorno (por ejemplo, fuera de un contexto seguro HTTPS o localhost). Las acciones
+        están deshabilitadas.
+      </p>
+    }
+
+    <p class="status__active">
+      Caché activa:
+      @if (activeCache(); as active) {
+        <strong id="active-cache-name">{{ active }}</strong>
+      } @else {
+        <span class="muted">ninguna. Crea o selecciona una caché en la sección 2.</span>
+      }
+    </p>
+  </section>
+
+  <!-- Resultado -->
+  <section
+    class="result"
+    [class.result--success]="feedback()?.kind === 'success'"
+    [class.result--error]="feedback()?.kind === 'error'"
+    aria-live="polite"
+    aria-labelledby="cache-result-title"
+  >
+    <h3 id="cache-result-title" class="result__title">Resultado / último error</h3>
+
+    @if (feedback(); as current) {
+      <p class="result__message" id="cache-feedback">
+        @if (current.code) {
+          <strong>{{ current.code }}:</strong>
+        }
+        {{ current.message }}
+      </p>
+
+      @if (current.cause) {
+        <p class="result__detail"><strong>Causa:</strong> {{ current.cause }}</p>
+      }
+    } @else {
+      <p class="result__detail">Todavía no hay operaciones.</p>
+    }
+  </section>
+
+  <fieldset class="group" [disabled]="!supported()">
+    <legend class="visually-hidden">Operaciones de Cache Storage</legend>
+
+    <!-- 2. Cachés -->
+    <section class="sm-card section" aria-labelledby="caches-title">
+      <h3 id="caches-title" class="sm-card__title">2. Cachés</h3>
+
+      <div class="sm-grid">
+        <form (submit)="createCache($event)">
+          <label class="sm-field" for="new-cache-name">
+            <span>Nombre de la nueva caché</span>
+            <input
+              id="new-cache-name"
+              class="sm-input"
+              type="text"
+              placeholder="mi-cache"
+              autocomplete="off"
+              [value]="newCacheName()"
+              (input)="setFromInput(newCacheName, $event)"
+            />
+          </label>
+          <button
+            id="create-cache"
+            class="sm-btn sm-btn--primary"
+            type="submit"
+            [disabled]="busy()"
+          >
+            {{ pending() === 'create' ? 'Creando…' : 'Crear caché' }}
+          </button>
+        </form>
+
+        <form (submit)="checkCache($event)">
+          <label class="sm-field" for="check-cache-name">
+            <span>Comprobar si existe una caché</span>
+            <input
+              id="check-cache-name"
+              class="sm-input"
+              type="text"
+              placeholder="mi-cache"
+              autocomplete="off"
+              [value]="checkCacheName()"
+              (input)="setFromInput(checkCacheName, $event)"
+            />
+          </label>
+          <button id="check-cache" class="sm-btn" type="submit" [disabled]="busy()">
+            {{ pending() === 'has' ? 'Comprobando…' : '¿Existe? (hasCache)' }}
+          </button>
+
+          @if (hasResult(); as result) {
+            <p class="state" [class.state--ok]="result.exists" id="has-result">
+              La caché "{{ result.name }}" {{ result.exists ? 'existe' : 'no existe' }}.
+            </p>
+          }
+        </form>
+      </div>
+
+      <div class="section__heading">
+        <h4 class="section__subtitle">Cachés existentes</h4>
+        <button
+          id="refresh-caches"
+          class="sm-btn sm-btn--ghost"
+          type="button"
+          [disabled]="busy()"
+          (click)="refreshCaches()"
+        >
+          {{ pending() === 'list' ? 'Cargando…' : 'Refrescar (listCaches)' }}
+        </button>
+      </div>
+
+      @if (caches().length === 0) {
+        <p class="muted">No hay cachés creadas.</p>
+      } @else {
+        <ul class="sm-list cache-list" aria-label="Cachés existentes">
+          @for (name of caches(); track name) {
+            <li class="cache-list__item" [class.cache-list__item--active]="name === activeCache()">
+              <span class="cache-list__name">
+                <code>{{ name }}</code>
+                @if (name === activeCache()) {
+                  <span class="badge">Activa</span>
+                }
+              </span>
+
+              @if (confirmingDelete() === name) {
+                <span
+                  class="sm-actions"
+                  role="group"
+                  [attr.aria-label]="'Confirmar eliminación de ' + name"
+                >
+                  <span class="state state--warning">¿Eliminar la caché y todos sus recursos?</span>
+                  <button
+                    class="sm-btn sm-btn--danger confirm-delete-cache"
+                    type="button"
+                    [disabled]="busy()"
+                    (click)="confirmDeleteCache(name)"
+                  >
+                    Sí, eliminar
+                  </button>
+                  <button class="sm-btn sm-btn--ghost" type="button" (click)="cancelDeleteCache()">
+                    Cancelar
+                  </button>
+                </span>
+              } @else {
+                <span class="sm-actions">
+                  <button
+                    class="sm-btn select-cache"
+                    type="button"
+                    [disabled]="busy() || name === activeCache()"
+                    [attr.aria-pressed]="name === activeCache()"
+                    (click)="activate(name)"
+                  >
+                    {{ name === activeCache() ? 'Seleccionada' : 'Seleccionar' }}
+                  </button>
+                  <button
+                    class="sm-btn sm-btn--danger delete-cache"
+                    type="button"
+                    [disabled]="busy()"
+                    (click)="requestDeleteCache(name)"
+                  >
+                    Eliminar caché
+                  </button>
+                </span>
+              }
+            </li>
+          }
+        </ul>
+      }
+    </section>
+
+    <fieldset class="group" [disabled]="!activeCache()">
+      <legend class="visually-hidden">Operaciones sobre la caché activa</legend>
+
+      @if (supported() && !activeCache()) {
+        <p class="notice">Selecciona o crea una caché para habilitar las secciones 3, 4 y 5.</p>
+      }
+
+      <!-- 3. Guardar recursos -->
+      <section class="section" aria-labelledby="save-title">
+        <h3 id="save-title" class="section__title">3. Guardar recursos en la caché activa</h3>
+
+        <div class="cards">
+          <form class="sm-card" (submit)="put($event)">
+            <h4 class="sm-card__title">put()</h4>
+            <p class="hint">Construye un <code>Response</code> con el cuerpo y el Content-Type.</p>
+
+            <label class="sm-field" for="put-url">
+              <span>URL</span>
+              <input
+                id="put-url"
+                class="sm-input"
+                type="text"
+                [value]="putUrl()"
+                (input)="setFromInput(putUrl, $event)"
+              />
+            </label>
+            <label class="sm-field" for="put-body">
+              <span>Cuerpo (texto)</span>
+              <textarea
+                id="put-body"
+                class="sm-textarea"
+                rows="3"
+                [value]="putBody()"
+                (input)="setFromInput(putBody, $event)"
+              ></textarea>
+            </label>
+            <label class="sm-field" for="put-content-type">
+              <span>Content-Type</span>
+              <input
+                id="put-content-type"
+                class="sm-input"
+                type="text"
+                [value]="putContentType()"
+                (input)="setFromInput(putContentType, $event)"
+              />
+            </label>
+            <button
+              id="put-button"
+              class="sm-btn sm-btn--primary"
+              type="submit"
+              [disabled]="busy()"
+            >
+              {{ pending() === 'put' ? 'Guardando…' : 'Guardar con put()' }}
+            </button>
+          </form>
+
+          <form class="sm-card" (submit)="putJson($event)">
+            <h4 class="sm-card__title">putJson()</h4>
+            <p class="hint">El JSON se valida antes de llamar al servicio.</p>
+
+            <label class="sm-field" for="json-url">
+              <span>URL</span>
+              <input
+                id="json-url"
+                class="sm-input"
+                type="text"
+                [value]="jsonUrl()"
+                (input)="setFromInput(jsonUrl, $event)"
+              />
+            </label>
+            <label class="sm-field" for="json-body">
+              <span>Contenido JSON</span>
+              <textarea
+                id="json-body"
+                class="sm-textarea mono"
+                rows="6"
+                spellcheck="false"
+                [value]="jsonBody()"
+                (input)="setFromInput(jsonBody, $event)"
+              ></textarea>
+            </label>
+            <button
+              id="put-json-button"
+              class="sm-btn sm-btn--primary"
+              type="submit"
+              [disabled]="busy()"
+            >
+              {{ pending() === 'put-json' ? 'Guardando…' : 'Guardar con putJson()' }}
+            </button>
+          </form>
+
+          <form class="sm-card" (submit)="fetchAndStore($event)">
+            <h4 class="sm-card__title">fetchAndStore()</h4>
+            <p class="hint">
+              Descarga la URL con <code>fetch</code> y guarda la respuesta. La URL debe permitir
+              CORS desde este origen.
+            </p>
+
+            <label class="sm-field" for="fetch-url">
+              <span>URL a descargar</span>
+              <input
+                id="fetch-url"
+                class="sm-input"
+                type="url"
+                [value]="fetchUrl()"
+                (input)="setFromInput(fetchUrl, $event)"
+              />
+            </label>
+            <button
+              id="fetch-button"
+              class="sm-btn sm-btn--primary"
+              type="submit"
+              [disabled]="busy()"
+            >
+              {{ pending() === 'fetch' ? 'Descargando…' : 'Descargar y guardar' }}
+            </button>
+          </form>
+        </div>
+      </section>
+
+      <!-- 4. Consultar -->
+      <section class="section" aria-labelledby="query-title">
+        <h3 id="query-title" class="section__title">4. Consultar en la caché activa</h3>
+
+        <div class="sm-grid">
+          <form class="sm-card" (submit)="get($event)">
+            <h4 class="sm-card__title">get()</h4>
+            <label class="sm-field" for="get-url">
+              <span>URL</span>
+              <input
+                id="get-url"
+                class="sm-input"
+                type="text"
+                placeholder="/demo/saludo.txt"
+                [value]="getUrl()"
+                (input)="setFromInput(getUrl, $event)"
+              />
+            </label>
+            <button
+              id="get-button"
+              class="sm-btn sm-btn--primary"
+              type="submit"
+              [disabled]="busy()"
+            >
+              {{ pending() === 'get' ? 'Consultando…' : 'Consultar con get()' }}
+            </button>
+
+            @if (getResult(); as result) {
+              @if (result.found) {
+                <dl class="meta" id="get-result">
+                  <dt>Status</dt>
+                  <dd>{{ result.status }}</dd>
+                  <dt>Content-Type</dt>
+                  <dd>{{ result.contentType }}</dd>
+                </dl>
+                <pre class="sm-output">{{ result.body }}</pre>
+              } @else {
+                <p class="state" id="get-result">No encontrado: "{{ result.url }}".</p>
+              }
+            }
+          </form>
+
+          <form class="sm-card" (submit)="getJson($event)">
+            <h4 class="sm-card__title">getJson()</h4>
+            <label class="sm-field" for="get-json-url">
+              <span>URL</span>
+              <input
+                id="get-json-url"
+                class="sm-input"
+                type="text"
+                placeholder="/demo/usuario.json"
+                [value]="getJsonUrl()"
+                (input)="setFromInput(getJsonUrl, $event)"
+              />
+            </label>
+            <button
+              id="get-json-button"
+              class="sm-btn sm-btn--primary"
+              type="submit"
+              [disabled]="busy()"
+            >
+              {{ pending() === 'get-json' ? 'Consultando…' : 'Consultar con getJson()' }}
+            </button>
+
+            @if (getJsonResult(); as result) {
+              @if (result.value !== null) {
+                <pre class="sm-output" id="get-json-result">{{ result.value }}</pre>
+              } @else {
+                <p class="state" id="get-json-result">No encontrado (null): "{{ result.url }}".</p>
+              }
+            }
+          </form>
+        </div>
+      </section>
+
+      <!-- 5. Recursos -->
+      <section class="sm-card section" aria-labelledby="entries-title">
+        <div class="section__heading">
+          <h3 id="entries-title" class="sm-card__title">
+            5. Recursos de la caché activa
+            @if (activeCache(); as active) {
+              (<code>{{ active }}</code
+              >)
+            }
+          </h3>
+          <button
+            id="refresh-entries"
+            class="sm-btn sm-btn--ghost"
+            type="button"
+            [disabled]="busy()"
+            (click)="refreshEntries()"
+          >
+            {{ pending() === 'keys' ? 'Cargando…' : 'Refrescar (keys)' }}
+          </button>
+        </div>
+
+        @if (entries().length === 0) {
+          <p class="muted">No hay recursos en la caché activa.</p>
+        } @else {
+          <div class="table-wrapper">
+            <table>
+              <caption class="visually-hidden">
+                Recursos guardados en la caché activa
+              </caption>
+              <thead>
+                <tr>
+                  <th scope="col">Método</th>
+                  <th scope="col">URL</th>
+                  <th scope="col">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (entry of entries(); track entry.method + ' ' + entry.url) {
+                  <tr>
+                    <td>
+                      <code>{{ entry.method }}</code>
+                    </td>
+                    <td class="url">{{ entry.url }}</td>
+                    <td>
+                      <span class="sm-actions">
+                        <button
+                          class="sm-btn inspect-entry"
+                          type="button"
+                          [disabled]="busy()"
+                          [attr.aria-label]="'Consultar ' + entry.url"
+                          (click)="inspectEntry(entry)"
+                        >
+                          Consultar
+                        </button>
+                        <button
+                          class="sm-btn sm-btn--danger delete-entry"
+                          type="button"
+                          [disabled]="busy()"
+                          [attr.aria-label]="'Eliminar ' + entry.url"
+                          (click)="deleteEntry(entry)"
+                        >
+                          Eliminar
+                        </button>
+                      </span>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </section>
+    </fieldset>
+  </fieldset>
+</section>
