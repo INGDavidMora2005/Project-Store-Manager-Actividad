@@ -1,1 +1,341 @@
-<p>local-storage-panel works!</p>
+<section class="panel">
+  <header class="panel__header">
+    <p class="eyebrow">Demostración de la API</p>
+    <h2>LocalStorage</h2>
+    <p class="panel__intro">
+      Guarda, consulta, actualiza y elimina valores tipados usando la API pública de
+      <code>ngx-uceva-storage-manager</code>.
+    </p>
+  </header>
+
+  <section
+    class="result"
+    [class.result--success]="feedback()?.kind === 'success'"
+    [class.result--error]="feedback()?.kind === 'error'"
+    aria-live="polite"
+  >
+    <h3>Resultado / último error</h3>
+
+    @if (feedback(); as currentFeedback) {
+      <p class="result__message">{{ currentFeedback.message }}</p>
+
+      @if (currentFeedback.code) {
+        <p class="result__detail"><strong>Código:</strong> {{ currentFeedback.code }}</p>
+      }
+
+      @if (currentFeedback.cause) {
+        <p class="result__detail"><strong>Causa:</strong> {{ currentFeedback.cause }}</p>
+      }
+    } @else {
+      <p class="result__empty">Todavía no hay operaciones.</p>
+    }
+  </section>
+
+  <div class="grid">
+    <section class="card">
+      <h3>1. Guardar</h3>
+      <p class="card__hint">
+        Convierte el texto al tipo elegido antes de llamar a <code>set()</code>.
+      </p>
+
+      <label class="field" for="save-key">
+        <span>Clave</span>
+        <input
+          id="save-key"
+          type="text"
+          placeholder="mi-clave"
+          [value]="saveKey()"
+          (input)="setFromInput(saveKey, $event)"
+        />
+      </label>
+
+      <label class="field" for="save-type">
+        <span>Tipo de valor</span>
+        <select id="save-type" [value]="saveType()" (change)="onSaveTypeChange($event)">
+          <option value="string">Texto (string)</option>
+          <option value="number">Número (number)</option>
+          <option value="boolean">Booleano (boolean)</option>
+          <option value="json">JSON (objeto o arreglo)</option>
+        </select>
+      </label>
+
+      <label class="field" for="save-value">
+        <span>Valor</span>
+
+        @if (saveType() === 'boolean') {
+          <select id="save-value" [value]="saveValue()" (change)="setFromInput(saveValue, $event)">
+            <option value="true">Verdadero</option>
+            <option value="false">Falso</option>
+          </select>
+        } @else if (saveType() === 'json') {
+          <textarea
+            id="save-value"
+            rows="4"
+            placeholder='{"nombre": "Ana", "activo": true}'
+            [value]="saveValue()"
+            (input)="setFromInput(saveValue, $event)"
+          ></textarea>
+        } @else {
+          <input
+            id="save-value"
+            type="text"
+            placeholder="Valor a guardar"
+            [value]="saveValue()"
+            (input)="setFromInput(saveValue, $event)"
+          />
+        }
+      </label>
+
+      <button id="save-button" type="button" class="button button--primary" (click)="save()">
+        Guardar
+      </button>
+    </section>
+
+    <section class="card">
+      <h3>2. Consultar</h3>
+      <p class="card__hint">
+        Recupera una clave con <code>get()</code> y muestra su JSON formateado.
+      </p>
+
+      <label class="field" for="query-key">
+        <span>Clave</span>
+        <input
+          id="query-key"
+          type="text"
+          placeholder="mi-clave"
+          [value]="queryKey()"
+          (input)="setFromInput(queryKey, $event)"
+        />
+      </label>
+
+      <button id="query-button" type="button" class="button button--primary" (click)="query()">
+        Consultar
+      </button>
+
+      @if (queryResult(); as result) {
+        @if (result.value !== null) {
+          <div class="output">
+            <span class="output__label">Valor de "{{ result.key }}"</span>
+            <pre>{{ result.value }}</pre>
+          </div>
+        } @else {
+          <p class="state state--absent">La clave "{{ result.key }}" no existe.</p>
+        }
+      }
+    </section>
+
+    <section class="card">
+      <h3>3. Actualizar</h3>
+      <p class="card__hint">
+        Usa <code>update()</code> con una operación sencilla. Si la clave no existe, el valor actual
+        es <code>null</code>.
+      </p>
+
+      <label class="field" for="update-key">
+        <span>Clave</span>
+        <input
+          id="update-key"
+          type="text"
+          placeholder="contador"
+          [value]="updateKey()"
+          (input)="setFromInput(updateKey, $event)"
+        />
+      </label>
+
+      <label class="field" for="update-operation">
+        <span>Operación</span>
+        <select
+          id="update-operation"
+          [value]="updateOperation()"
+          (change)="onUpdateOperationChange($event)"
+        >
+          <option value="increment">Incrementar número</option>
+          <option value="toggle">Alternar booleano</option>
+          <option value="replace">Reemplazar por un nuevo valor</option>
+        </select>
+      </label>
+
+      @if (updateOperation() === 'replace') {
+        <label class="field" for="update-type">
+          <span>Tipo del nuevo valor</span>
+          <select id="update-type" [value]="updateType()" (change)="onUpdateTypeChange($event)">
+            <option value="string">Texto (string)</option>
+            <option value="number">Número (number)</option>
+            <option value="boolean">Booleano (boolean)</option>
+            <option value="json">JSON (objeto o arreglo)</option>
+          </select>
+        </label>
+
+        <label class="field" for="update-value">
+          <span>Nuevo valor</span>
+
+          @if (updateType() === 'boolean') {
+            <select
+              id="update-value"
+              [value]="updateValue()"
+              (change)="setFromInput(updateValue, $event)"
+            >
+              <option value="true">Verdadero</option>
+              <option value="false">Falso</option>
+            </select>
+          } @else if (updateType() === 'json') {
+            <textarea
+              id="update-value"
+              rows="4"
+              placeholder='{"nuevo": true}'
+              [value]="updateValue()"
+              (input)="setFromInput(updateValue, $event)"
+            ></textarea>
+          } @else {
+            <input
+              id="update-value"
+              type="text"
+              placeholder="Nuevo valor"
+              [value]="updateValue()"
+              (input)="setFromInput(updateValue, $event)"
+            />
+          }
+        </label>
+      }
+
+      <button id="update-button" type="button" class="button button--primary" (click)="update()">
+        Actualizar
+      </button>
+
+      @if (updateResult(); as result) {
+        <div class="output">
+          <span class="output__label">Nuevo valor devuelto</span>
+          <pre>{{ result }}</pre>
+        </div>
+      }
+    </section>
+
+    <section class="card">
+      <h3>4. Eliminar</h3>
+      <p class="card__hint">
+        Comprueba con <code>has()</code> y elimina con <code>remove()</code>. Eliminar una clave
+        inexistente no falla.
+      </p>
+
+      <label class="field" for="remove-key">
+        <span>Clave</span>
+        <input
+          id="remove-key"
+          type="text"
+          placeholder="mi-clave"
+          [value]="removeKey()"
+          (input)="setFromInput(removeKey, $event)"
+        />
+      </label>
+
+      <div class="actions">
+        <button
+          id="has-button"
+          type="button"
+          class="button button--secondary"
+          (click)="checkExists()"
+        >
+          ¿Existe?
+        </button>
+        <button id="remove-button" type="button" class="button button--danger" (click)="remove()">
+          Eliminar
+        </button>
+      </div>
+
+      @if (removeExists() !== null) {
+        <p
+          class="state"
+          [class.state--present]="removeExists() === true"
+          [class.state--absent]="removeExists() === false"
+        >
+          {{ removeExists() ? 'La clave existe.' : 'La clave no existe.' }}
+        </p>
+      }
+    </section>
+
+    <section class="card card--wide">
+      <div class="card__heading">
+        <div>
+          <h3>5. Listar</h3>
+          <p class="card__hint">
+            Lista las claves con <code>keys()</code> y recupera cada valor con <code>get()</code>.
+          </p>
+        </div>
+        <button
+          id="list-button"
+          type="button"
+          class="button button--secondary"
+          (click)="refreshList()"
+        >
+          Actualizar lista
+        </button>
+      </div>
+
+      @if (entries().length === 0) {
+        <p class="state state--absent">No hay claves guardadas.</p>
+      } @else {
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Clave</th>
+                <th>Valor</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (entry of entries(); track entry.key) {
+                <tr>
+                  <td>
+                    <code>{{ entry.key }}</code>
+                  </td>
+                  <td>
+                    <pre>{{ entry.value }}</pre>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </section>
+
+    <section class="card">
+      <h3>6. Limpiar</h3>
+      <p class="card__hint">
+        Elimina todas las claves del prefijo configurado con <code>clear()</code>. Esta acción pide
+        confirmación.
+      </p>
+
+      @if (!confirmingClear()) {
+        <button
+          id="clear-request"
+          type="button"
+          class="button button--danger"
+          (click)="requestClear()"
+        >
+          Limpiar todo
+        </button>
+      } @else {
+        <p class="state state--warning">¿Seguro que quieres eliminar todas las claves?</p>
+        <div class="actions">
+          <button
+            id="clear-confirm"
+            type="button"
+            class="button button--danger"
+            (click)="confirmClear()"
+          >
+            Sí, limpiar
+          </button>
+          <button
+            id="clear-cancel"
+            type="button"
+            class="button button--secondary"
+            (click)="cancelClear()"
+          >
+            Cancelar
+          </button>
+        </div>
+      }
+    </section>
+  </div>
+</section>

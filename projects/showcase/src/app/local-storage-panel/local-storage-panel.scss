@@ -1,0 +1,276 @@
+:host {
+  display: block;
+  max-width: 1120px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+  color: #1f2937;
+  font-size: 0.95rem;
+}
+
+.panel {
+  padding: 1.5rem;
+  border: 1px solid #dbe3ef;
+  border-radius: 1rem;
+  background: #f8fafc;
+  box-shadow: 0 12px 30px rgb(15 23 42 / 8%);
+}
+
+.panel__header {
+  margin-bottom: 1.25rem;
+
+  h2 {
+    margin: 0.2rem 0 0.5rem;
+    font-size: 1.8rem;
+    color: #0f172a;
+  }
+}
+
+.eyebrow {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #2563eb;
+}
+
+.panel__intro {
+  max-width: 70ch;
+  margin: 0;
+  color: #475569;
+  line-height: 1.6;
+}
+
+code {
+  padding: 0.1rem 0.3rem;
+  border-radius: 0.3rem;
+  background: #e2e8f0;
+  font-size: 0.85em;
+}
+
+.result {
+  margin-bottom: 1.25rem;
+  padding: 0.9rem 1rem;
+  border-left: 4px solid #94a3b8;
+  border-radius: 0.6rem;
+  background: #fff;
+
+  h3 {
+    margin: 0 0 0.35rem;
+    font-size: 0.95rem;
+  }
+}
+
+.result--success {
+  border-left-color: #16a34a;
+  background: #f0fdf4;
+}
+
+.result--error {
+  border-left-color: #dc2626;
+  background: #fef2f2;
+}
+
+.result__message {
+  margin: 0;
+  font-weight: 600;
+}
+
+.result__detail,
+.result__empty {
+  margin: 0.35rem 0 0;
+  color: #475569;
+  font-size: 0.9rem;
+  word-break: break-word;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(265px, 1fr));
+  gap: 1rem;
+}
+
+.card {
+  padding: 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  background: #fff;
+
+  h3 {
+    margin: 0 0 0.5rem;
+    font-size: 1.05rem;
+    color: #0f172a;
+  }
+}
+
+.card--wide {
+  grid-column: 1 / -1;
+}
+
+.card__heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.card__hint {
+  margin: 0 0 0.85rem;
+  color: #64748b;
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  margin-bottom: 0.8rem;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+input,
+select,
+textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.55rem 0.65rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.45rem;
+  background: #fff;
+  color: inherit;
+  font: inherit;
+  font-weight: 400;
+
+  &:focus {
+    outline: 2px solid #93c5fd;
+    outline-offset: 1px;
+    border-color: #2563eb;
+  }
+}
+
+textarea {
+  min-height: 5rem;
+  resize: vertical;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.button {
+  padding: 0.55rem 0.9rem;
+  border: 1px solid transparent;
+  border-radius: 0.45rem;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: filter 120ms ease;
+
+  &:hover {
+    filter: brightness(0.94);
+  }
+}
+
+.button--primary {
+  background: #2563eb;
+  color: #fff;
+}
+
+.button--secondary {
+  border-color: #cbd5e1;
+  background: #f8fafc;
+  color: #334155;
+}
+
+.button--danger {
+  background: #dc2626;
+  color: #fff;
+}
+
+.state {
+  margin: 0.75rem 0 0;
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.state--present {
+  color: #15803d;
+}
+
+.state--absent {
+  color: #64748b;
+}
+
+.state--warning {
+  color: #b45309;
+}
+
+.output {
+  margin-top: 0.85rem;
+}
+
+.output__label {
+  display: block;
+  margin-bottom: 0.35rem;
+  color: #475569;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+pre {
+  max-height: 14rem;
+  margin: 0;
+  padding: 0.65rem;
+  overflow: auto;
+  border-radius: 0.45rem;
+  background: #0f172a;
+  color: #e2e8f0;
+  font-size: 0.8rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.table-wrapper {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+
+  th,
+  td {
+    padding: 0.55rem 0.65rem;
+    border-bottom: 1px solid #e2e8f0;
+    text-align: left;
+    vertical-align: top;
+  }
+
+  th {
+    color: #475569;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  td pre {
+    max-height: 8rem;
+  }
+}
+
+@media (max-width: 620px) {
+  .panel {
+    padding: 1rem;
+  }
+
+  .card__heading {
+    flex-direction: column;
+  }
+}
