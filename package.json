@@ -7,7 +7,10 @@
     "build:showcase": "ng build showcase",
     "test": "ng test storage-manager --watch=false",
     "test:coverage": "ng test storage-manager --watch=false --coverage",
-    "start:showcase": "npm run build:lib && ng serve showcase"
+    "start:showcase": "npm run build:lib && ng serve showcase",
+    "docs": "compodoc -p projects/storage-manager/tsconfig.doc.json -d documentation --name \"ngx-uceva-storage-manager\" --disablePrivate --disableProtected --disableInternal --disableDependencies",
+    "docs:serve": "compodoc -p projects/storage-manager/tsconfig.doc.json -d documentation --name \"ngx-uceva-storage-manager\" --disablePrivate --disableProtected --disableInternal --disableDependencies -s",
+    "docs:coverage": "compodoc -p projects/storage-manager/tsconfig.doc.json -d documentation --name \"ngx-uceva-storage-manager\" --disablePrivate --disableProtected --disableInternal --disableDependencies --coverageTest 100 --silent"
   },
   "private": true,
   "packageManager": "npm@12.2.1",
@@ -25,6 +28,7 @@
     "@angular/build": "^22.2.6",
     "@angular/cli": "^22.1.8",
     "@angular/compiler-cli": "^22.1.0",
+    "@compodoc/compodoc": "^2.0.0",
     "@vitest/coverage-v8": "^5.1.0",
     "jsdom": "^30.0.0",
     "ng-packagr": "^22.2.0",
