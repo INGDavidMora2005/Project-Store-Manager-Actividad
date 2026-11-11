@@ -26,7 +26,6 @@ describe('StorageError', () => {
       StorageErrorCode.QUOTA_EXCEEDED,
       StorageErrorCode.SERIALIZATION_ERROR,
       StorageErrorCode.PARSE_ERROR,
-      StorageErrorCode.NOT_FOUND,
       StorageErrorCode.OPERATION_FAILED,
     ]);
   });

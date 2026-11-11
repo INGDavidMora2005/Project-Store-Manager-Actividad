@@ -482,12 +482,12 @@ describe('CacheStorageService', () => {
 
     it('debe re-lanzar un StorageError sin envolverlo', async () => {
       const { service, storage } = setup();
-      const original = new StorageError('Error previo', StorageErrorCode.NOT_FOUND);
+      const original = new StorageError('Error previo', StorageErrorCode.SERIALIZATION_ERROR);
       storage.open.mockRejectedValueOnce(original);
 
       const error = await expectStorageError(
         service.createCache('api'),
-        StorageErrorCode.NOT_FOUND,
+        StorageErrorCode.SERIALIZATION_ERROR,
       );
 
       expect(error).toBe(original);
@@ -496,7 +496,7 @@ describe('CacheStorageService', () => {
 
     it('debe re-lanzar un StorageError al leer el cuerpo en getJson', async () => {
       const { service, storage } = setup();
-      const original = new StorageError('Error previo', StorageErrorCode.NOT_FOUND);
+      const original = new StorageError('Error previo', StorageErrorCode.SERIALIZATION_ERROR);
       await service.createCache('api');
       storage.caches.get('api')!.match.mockResolvedValueOnce({
         text: () => Promise.reject(original),
@@ -504,7 +504,7 @@ describe('CacheStorageService', () => {
 
       const error = await expectStorageError(
         service.getJson('api', `${BASE}/recurso`),
-        StorageErrorCode.NOT_FOUND,
+        StorageErrorCode.SERIALIZATION_ERROR,
       );
 
       expect(error).toBe(original);
