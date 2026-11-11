@@ -3,6 +3,11 @@
   "version": "0.0.0",
   "description": "Librería Angular tipada para gestionar LocalStorage y Cache Storage con una API consistente.",
   "license": "MIT",
+  "author": "David Mora Duque, Juan Diego Rodríguez Ortiz, Juan Pablo Devia Masso",
+  "homepage": "https://github.com/INGDavidMora2005/Project-Store-Manager-Actividad",
+  "bugs": {
+    "url": "https://github.com/INGDavidMora2005/Project-Store-Manager-Actividad/issues"
+  },
   "keywords": [
     "angular",
     "localstorage",
