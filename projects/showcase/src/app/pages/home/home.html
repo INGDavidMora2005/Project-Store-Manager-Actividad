@@ -1,0 +1,39 @@
+<section class="home">
+  <header class="home__hero">
+    <p class="home__eyebrow">Demostración interactiva</p>
+    <h2 class="home__title">Almacenamiento tipado para Angular</h2>
+    <p class="home__lead">
+      <code>ngx-uceva-storage-manager</code> es una librería de Angular que ofrece una API tipada
+      para gestionar <strong>LocalStorage</strong> y <strong>Cache Storage</strong>. Centraliza la
+      serialización, el prefijo de las claves de LocalStorage y el manejo de errores para que las
+      aplicaciones no dependan directamente de las APIs del navegador.
+    </p>
+
+    <p class="home__install-label">Instala la librería en tu proyecto:</p>
+    <pre class="sm-output home__command"><code>npm install ngx-uceva-storage-manager</code></pre>
+  </header>
+
+  <div class="sm-grid home__cards">
+    <article class="sm-card home__card">
+      <h3 class="sm-card__title">LocalStorage</h3>
+      <p class="home__card-text">
+        Guarda, consulta, actualiza y elimina valores tipados de forma síncrona. Incluye operaciones
+        para comprobar claves, listarlas y limpiar el almacenamiento.
+      </p>
+      <a class="sm-btn sm-btn--primary home__card-link" routerLink="/local-storage">
+        Abrir demostración
+      </a>
+    </article>
+
+    <article class="sm-card home__card">
+      <h3 class="sm-card__title">Cache Storage</h3>
+      <p class="home__card-text">
+        Gestiona cachés de recursos con una API asíncrona basada en promesas. Permite crear cachés,
+        guardar respuestas, recuperar JSON y eliminar recursos.
+      </p>
+      <a class="sm-btn sm-btn--primary home__card-link" routerLink="/cache-storage">
+        Abrir demostración
+      </a>
+    </article>
+  </div>
+</section>
