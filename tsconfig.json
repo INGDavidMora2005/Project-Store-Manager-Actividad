@@ -13,9 +13,6 @@
     "experimentalDecorators": true,
     "importHelpers": true,
     "target": "ES2022",
-    "paths": {
-      "ngx-uceva-storage-manager": ["./dist/storage-manager"]
-    },
     "module": "preserve"
   },
   "angularCompilerOptions": {
