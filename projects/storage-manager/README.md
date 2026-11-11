@@ -232,11 +232,11 @@ export class LocalKeysComponent {
 
 `CacheStorageService` es asíncrono y trabaja con promesas. Todos sus métodos, salvo `isSupported`, se usan con `async`/`await`. Antes de operar conviene comprobar el soporte del entorno.
 
-Los métodos que trabajan sobre una caché existente pueden lanzar `StorageError` si la caché no existe o si la operación falla. Consulta la sección de manejo de errores para interpretar el código del error.
+Sin soporte de `CacheStorage`, todos los métodos salvo `isSupported` lanzan `StorageError` con código `UNSUPPORTED`. Las escrituras (`put`, `putJson` y `fetchAndStore`) crean la caché si no existe; las lecturas y eliminaciones (`get`, `getJson`, `keys` y `delete`) no la crean. Los nombres de caché se usan tal como se reciben: el prefijo de `STORAGE_MANAGER_CONFIG` solo afecta a `LocalStorage`.
 
 ### isSupported
 
-Indica si el entorno ofrece `CacheStorage`. Es el único método síncrono del servicio.
+Indica si el entorno ofrece `CacheStorage`. Devuelve `false` cuando el token interno entrega `null`. Es el único método síncrono del servicio y el único que no lanza `UNSUPPORTED`.
 
 ```ts
 import { Component, inject } from '@angular/core';
@@ -258,7 +258,7 @@ export class CacheSupportComponent {
 
 ### createCache
 
-Crea una caché o abre una existente con el nombre indicado.
+Crea una caché o abre una existente con el nombre indicado. Es idempotente: llamarlo de nuevo con el mismo nombre no falla.
 
 ```ts
 import { Component, inject } from '@angular/core';
@@ -280,7 +280,7 @@ export class CacheCreateComponent {
 
 ### listCaches
 
-Devuelve los nombres de todas las cachés existentes.
+Devuelve los nombres de todas las cachés existentes. Devuelve un arreglo vacío si no hay cachés.
 
 ```ts
 import { Component, inject } from '@angular/core';
@@ -328,7 +328,7 @@ export class CacheHasComponent {
 
 ### put
 
-Guarda una respuesta asociada a una URL o a un objeto `Request` en una caché.
+Guarda una respuesta asociada a una URL o a un objeto `Request` en una caché. Si la caché no existe, se crea.
 
 ```ts
 import { Component, inject } from '@angular/core';
@@ -354,7 +354,7 @@ export class CachePutComponent {
 
 ### putJson
 
-Guarda un objeto como respuesta JSON asociada a una URL.
+Guarda un objeto como respuesta JSON (`Content-Type: application/json`) asociada a una URL. Si la caché no existe, se crea. Lanza `SERIALIZATION_ERROR` si `JSON.stringify` falla o devuelve `undefined`.
 
 ```ts
 import { Component, inject } from '@angular/core';
@@ -376,7 +376,7 @@ export class CachePutJsonComponent {
 
 ### fetchAndStore
 
-Descarga un recurso desde una URL y lo guarda en una caché.
+Descarga un recurso con el `fetch` global y lo guarda en una caché. Si la caché no existe, se crea. Si `fetch` rechaza, lanza `OPERATION_FAILED` conservando la causa; si la respuesta no es `ok`, lanza `OPERATION_FAILED` con el estado HTTP en el mensaje. En ambos casos no guarda nada.
 
 ```ts
 import { Component, inject } from '@angular/core';
@@ -398,7 +398,7 @@ export class CacheFetchComponent {
 
 ### get
 
-Recupera un recurso almacenado. Devuelve `undefined` si el recurso no existe.
+Recupera un recurso almacenado. Devuelve `undefined` si la caché o el recurso no existen. No crea la caché.
 
 ```ts
 import { Component, inject } from '@angular/core';
@@ -415,7 +415,7 @@ export class CacheGetComponent {
   async leer(): Promise<void> {
     const response = await this.cache.get('api', '/datos.json');
 
-    if (response) {
+    if (response !== undefined) {
       const datos: unknown = await response.json();
       console.log(datos);
     }
@@ -425,7 +425,7 @@ export class CacheGetComponent {
 
 ### getJson
 
-Recupera y deserializa un recurso JSON. Devuelve `null` si el recurso no existe.
+Recupera y deserializa un recurso JSON. Devuelve `null` si la caché o el recurso no existen, y también si el recurso existe pero se guardó el valor JSON `null`. Para distinguir ambos casos, usa `get` o `keys` antes de llamar a `getJson`. Lanza `PARSE_ERROR` si el contenido no es JSON válido. No crea la caché.
 
 ```ts
 import { Component, inject } from '@angular/core';
@@ -445,14 +445,25 @@ export class CacheGetJsonComponent {
       '/usuarios/1',
     );
 
-    console.log(usuario);
+    if (usuario !== null) {
+      console.log(usuario);
+      return;
+    }
+
+    const respuesta = await this.cache.get('api', '/usuarios/1');
+
+    if (respuesta === undefined) {
+      console.log('El recurso no existe.');
+    } else {
+      console.log('El recurso existe y su JSON es null.');
+    }
   }
 }
 ```
 
 ### keys
 
-Lista los recursos almacenados en una caché. Cada elemento incluye la URL y el método HTTP.
+Lista los recursos almacenados en una caché. Cada elemento incluye la URL y el método HTTP del `Request` (por ejemplo, `GET` cuando se guardó con una URL). Devuelve `[]` si la caché no existe. No crea la caché.
 
 ```ts
 import { Component, inject } from '@angular/core';
@@ -481,7 +492,7 @@ export class CacheKeysComponent {
 
 ### delete
 
-Elimina un recurso de una caché. Devuelve `true` si el recurso fue eliminado.
+Elimina un recurso de una caché. Devuelve `true` si el recurso fue eliminado y `false` si la caché o el recurso no existen. No crea la caché.
 
 ```ts
 import { Component, inject } from '@angular/core';
@@ -503,7 +514,7 @@ export class CacheDeleteComponent {
 
 ### deleteCache
 
-Elimina una caché completa. Devuelve `true` si la caché fue eliminada.
+Elimina una caché completa. Devuelve `true` si la caché fue eliminada y `false` si no existía.
 
 ```ts
 import { Component, inject } from '@angular/core';
@@ -529,12 +540,11 @@ Las operaciones de almacenamiento traducen los fallos a `StorageError`. La clase
 
 | Código | Cuándo ocurre |
 |---|---|
-| `UNSUPPORTED` | El entorno no ofrece soporte para el almacenamiento solicitado. |
+| `UNSUPPORTED` | El entorno no ofrece soporte para el almacenamiento solicitado. En `CacheStorageService` lo lanzan todos los métodos salvo `isSupported`. |
 | `QUOTA_EXCEEDED` | Se superó la cuota de almacenamiento disponible. |
-| `SERIALIZATION_ERROR` | No fue posible serializar el valor antes de guardarlo. |
-| `PARSE_ERROR` | El contenido almacenado no es un JSON válido. |
-| `NOT_FOUND` | La clave, la caché o el recurso solicitado no existe. Las consultas que devuelven `null` o `undefined` no lanzan este código. |
-| `OPERATION_FAILED` | Ocurrió un fallo no clasificado durante la operación. |
+| `SERIALIZATION_ERROR` | `JSON.stringify` falló o devolvió `undefined` al intentar guardar un valor con `set` o `putJson`. |
+| `PARSE_ERROR` | El contenido almacenado no es un JSON válido al leerlo con `get` o `getJson`. |
+| `OPERATION_FAILED` | Ocurrió un fallo no clasificado durante la operación. En `CacheStorageService` incluye los fallos de la API nativa y de `fetch`; conserva la causa original cuando está disponible. |
 
 ```ts
 import { Component, inject } from '@angular/core';
@@ -588,18 +598,18 @@ export class ErrorDemoComponent {
 
 | Firma | Descripción |
 |---|---|
-| `isSupported(): boolean` | Indica si el entorno ofrece `CacheStorage`. |
-| `createCache(name: string): Promise<void>` | Crea o abre una caché con el nombre indicado. |
+| `isSupported(): boolean` | Indica si el entorno ofrece `CacheStorage`. Devuelve `false` si no está disponible. |
+| `createCache(name: string): Promise<void>` | Crea o abre una caché con el nombre indicado. Es idempotente. |
 | `listCaches(): Promise<string[]>` | Devuelve los nombres de todas las cachés existentes. |
 | `hasCache(name: string): Promise<boolean>` | Indica si una caché existe. |
-| `put(cacheName: string, request: string \| Request, response: Response): Promise<void>` | Guarda una respuesta asociada a una URL o petición. |
-| `putJson<T>(cacheName: string, url: string, data: T): Promise<void>` | Guarda un objeto como respuesta JSON asociada a una URL. |
-| `fetchAndStore(cacheName: string, url: string): Promise<void>` | Descarga un recurso desde una URL y lo guarda en la caché. |
-| `get(cacheName: string, request: string \| Request): Promise<Response \| undefined>` | Recupera un recurso almacenado o `undefined` si no existe. |
-| `getJson<T>(cacheName: string, url: string): Promise<T \| null>` | Recupera y deserializa un recurso JSON o `null` si no existe. |
-| `keys(cacheName: string): Promise<CacheEntryInfo[]>` | Lista los recursos almacenados en una caché. |
-| `delete(cacheName: string, request: string \| Request): Promise<boolean>` | Elimina un recurso de una caché. |
-| `deleteCache(name: string): Promise<boolean>` | Elimina una caché completa. |
+| `put(cacheName: string, request: string \| Request, response: Response): Promise<void>` | Guarda una respuesta asociada a una URL o petición; crea la caché si no existe. |
+| `putJson<T>(cacheName: string, url: string, data: T): Promise<void>` | Guarda un objeto como respuesta JSON (`Content-Type: application/json`); crea la caché si no existe. |
+| `fetchAndStore(cacheName: string, url: string): Promise<void>` | Descarga una URL con el `fetch` global y la guarda; crea la caché si no existe. No guarda nada si la descarga falla. |
+| `get(cacheName: string, request: string \| Request): Promise<Response \| undefined>` | Devuelve la respuesta o `undefined` si la caché o el recurso no existen. No crea la caché. |
+| `getJson<T>(cacheName: string, url: string): Promise<T \| null>` | Devuelve el JSON o `null` si la caché o el recurso no existen, o si el JSON almacenado es `null`. No crea la caché. |
+| `keys(cacheName: string): Promise<CacheEntryInfo[]>` | Lista los recursos (`url` y `method`) o `[]` si la caché no existe. No crea la caché. |
+| `delete(cacheName: string, request: string \| Request): Promise<boolean>` | Devuelve `true` si eliminó el recurso; `false` si la caché o el recurso no existen. No crea la caché. |
+| `deleteCache(name: string): Promise<boolean>` | Devuelve `true` si eliminó la caché; `false` si no existía. |
 
 ### Tipos públicos
 
