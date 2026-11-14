@@ -1,5 +1,9 @@
 # ngx-uceva-storage-manager
 
+[![CI/CD](https://github.com/INGDavidMora2005/Project-Store-Manager-Actividad/actions/workflows/deploy.yml/badge.svg)](https://github.com/INGDavidMora2005/Project-Store-Manager-Actividad/actions/workflows/deploy.yml)
+
+Demo del Showcase desplegada: [https://ingdavidmora2005.github.io/Project-Store-Manager-Actividad/](https://ingdavidmora2005.github.io/Project-Store-Manager-Actividad/)
+
 Workspace de Angular que contiene la librería `ngx-uceva-storage-manager` y una aplicación de demostración (Showcase). La librería ofrece una API tipada para gestionar `LocalStorage` y `Cache Storage` con claves prefijadas y errores identificables.
 
 Paquete publicado en NPM: [ngx-uceva-storage-manager](https://www.npmjs.com/package/ngx-uceva-storage-manager).
@@ -44,7 +48,7 @@ npm install
 | Script | Comando | Descripción |
 |---|---|---|
 | `build:lib` | `ng build storage-manager` | Compila la librería en `dist/storage-manager` para desarrollo local. |
-| `test` | `ng test storage-manager --watch=false` | Ejecuta las pruebas unitarias una vez. |
+| `test` | `ng test storage-manager --watch=false` | Ejecuta las 111 pruebas unitarias de la librería una vez. |
 | `test:coverage` | `ng test storage-manager --watch=false --coverage` | Ejecuta las pruebas y genera el reporte de cobertura. |
 | `docs` | `compodoc -p projects/storage-manager/tsconfig.doc.json -d documentation --name "ngx-uceva-storage-manager" --disablePrivate --disableProtected --disableInternal --disableDependencies` | Genera la documentación técnica en `documentation/`. |
 | `docs:serve` | `compodoc -p projects/storage-manager/tsconfig.doc.json -d documentation --name "ngx-uceva-storage-manager" --disablePrivate --disableProtected --disableInternal --disableDependencies -s` | Genera la documentación y la sirve localmente. |
@@ -67,6 +71,24 @@ npm run build:showcase
 ```
 
 El Showcase resuelve la librería desde `node_modules`, por lo que no necesita que exista `dist/storage-manager`. `npm run build:lib` sigue disponible para compilar y desarrollar la librería en `dist/storage-manager`; el Showcase no consume esa carpeta, sino la versión instalada desde NPM.
+
+## Despliegue (CI/CD)
+
+El Showcase se publica en GitHub Pages: [https://ingdavidmora2005.github.io/Project-Store-Manager-Actividad/](https://ingdavidmora2005.github.io/Project-Store-Manager-Actividad/). GitHub Pages sirve por HTTPS, por lo que `Cache Storage` dispone de un contexto seguro en la demo.
+
+El workflow [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml) se ejecuta en cada `push` y `pull_request` sobre `main` y también de forma manual (`workflow_dispatch`). Tiene tres jobs:
+
+- **Pruebas y compilación**: instala con `npm ci`, ejecuta las 111 pruebas unitarias de la librería (`npm test`), compila la librería (`npm run build:lib`, solo como validación, sin publicar en NPM) y compila el Showcase con `--base-href /Project-Store-Manager-Actividad/`. Después copia `index.html` a `404.html` y valida que existan ambos archivos y el base href. El artefacto de Pages solo se prepara en `push` o ejecución manual sobre `main`, nunca en pull requests.
+- **Desplegar en GitHub Pages**: publica el artefacto con `actions/deploy-pages` en el entorno `github-pages`.
+- **Verificar despliegue**: consulta la URL base con barra final y exige HTTP 200 y el marcador `<app-root`; comprueba que el bundle principal responda 200 y que una ruta profunda real (`/local-storage`) contenga `<app-root`. El resultado se escribe en el resumen de la ejecución.
+
+### Estrategia de enrutamiento
+
+El Showcase usa `PathLocationStrategy`, el comportamiento por defecto de Angular (`provideRouter(routes)` sin `useHash`). GitHub Pages solo sirve archivos estáticos, así que una ruta profunda como `/local-storage` responde HTTP 404 aunque el cuerpo sea el `404.html`. Por eso el pipeline copia `index.html` a `404.html`: la aplicación carga correctamente en esas rutas, pero la respuesta HTTP sigue siendo 404 por el diseño de GitHub Pages. La alternativa para evitarlo sería usar `HashLocationStrategy` (`useHash`).
+
+### Configuración manual de Pages
+
+En el repositorio, una única vez: **Settings → Pages → Source = GitHub Actions**.
 
 ## Uso rápido
 
